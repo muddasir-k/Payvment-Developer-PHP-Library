@@ -4,6 +4,8 @@
  * This module implements the basic authentication methods needed
  * to interface w/ Payvment's Application
  * 
+ * Also provides client calls for the Stores and Orders API.  More to come soon!
+ * 
  * version: 1.0
  * 
  *
@@ -11,14 +13,20 @@
  */
 
 require_once('BasePayvment.php');
+defined('PRODUCTION_API_CALLBACK') || define('PRODUCTION_API_CALLBACK', 'https://api.payvment.com');
+defined('SANDBOX_API_CALLBACK') || define('SANDBOX_API_CALLBACK', 'https://api-sandbox.payvment.com');
 
-define('PRODUCTION_APPLICATION_ID', '<YOUR_APP_ID>');
-define('PRODUCTION_APPLICATION_SECRET', '<YOUR_APP_SECRET>');
-define('PRODUCTION_API_CALLBACK', 'https://api.payvment.com');
 
-define('SANDBOX_APPLICATION_ID', '<YOUR_SANDBOX_APP_ID>');
-define('SANDBOX_APPLICATION_SECRET', '<YOUR_SANDBOX_APP_SECRET>');
-define('SANDBOX_API_CALLBACK', 'https://api-sandbox.payvment.com');
+//define('PRODUCTION_APPLICATION_ID', '<YOUR_APP_ID>');              // Update this with your Production Payvment App ID
+//define('PRODUCTION_APPLICATION_SECRET', '<YOUR_APP_SECRET>');      // Update this with your Production Payvment App Secret
+ 
+//define('SANDBOX_APPLICATION_ID', '<YOUR_SANDBOX_APP_ID>');         // Update this with your Sandbox Payvment App ID
+//define('SANDBOX_APPLICATION_SECRET', '<YOUR_SANDBOX_APP_SECRET>'); // Update this with your Sandbox Payvment App Secret
+
+
+if (!defined('PRODUCTION_APPLICATION_ID') || !defined('PRODUCTION_APPLICATION_SECRET') || !defined('SANDBOX_APPLICATION_ID') || !defined('SANDBOX_APPLICATION_SECRET'))
+    exit("Must define all of the following configurations: PRODUCTION_APPLICATION_ID, PRODUCTION_APPLICATION_SECRET, SANDBOX_APPLICATION_ID, SANDBOX_APPLICATION_SECRET");
+
 
 class Payvment extends BasePayvment {
     
@@ -136,8 +144,26 @@ class Payvment extends BasePayvment {
         
         return true;
     }
-    
+
     /* Payvment API Support */
+
+    /* Utilities for constructing the Urls */  
+
+    // Stores Management
+    // See http://open.payvment.com/docs_getstores.php
+    public function getStoresUrl($params="")
+    {
+        $url = $this->_callbackUrl . "/1/stores/list?access_token=" . 
+                $this->_payvmentToken;
+        echo "stores url is ".$url;        
+        if (!empty($params)) {
+            foreach ($params as $key => $val) {
+                $url .= "&" . urlencode($key) . '=' . urlencode($val);
+            }
+        }
+
+        return $url;
+    }  
     
     /**
      * This is the REST call for Payvment's orders API
@@ -159,6 +185,31 @@ class Payvment extends BasePayvment {
         }
 
         return $url;
+    }
+    
+    /**
+     * REST calls for Payvment's stores API
+     * the default command will pull all orders for a given retailer
+     * 
+     * @param string $format
+     * @return string $result
+     */
+    public function stores($params=false, $format='xml')
+    {
+        $result = false;
+        if(!$params) {
+            $params = array();
+        }
+        switch ($format) {
+            case 'xml':
+                $result = $this->getXml($this->getStoresUrl($params));
+                break;
+            default:
+                $result = 'Invalid format passed.';
+                break;
+        }
+        
+        return $result;
     }
     
     /**

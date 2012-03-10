@@ -1,4 +1,19 @@
 <?php
+
+// Tess Payvment Credentials for testing
+define('PRODUCTION_APPLICATION_ID', '727466');   // Update this with your Payvment ID
+define('PRODUCTION_APPLICATION_SECRET', '84e583f3d0e8bb603d2756b94b3c07d4');    // UPdate this with your Payvment App Secret
+
+define('SANDBOX_APPLICATION_ID', '727413');    // Update this with your Sandbox Payvment ID
+define('SANDBOX_APPLICATION_SECRET', '0cb98a182657ede761ab073fe461b4e7');     // Update this with your Sandbox Payvment App Secret
+
+define('PRODUCTION_API_CALLBACK', 'https://api.payvment.com');
+define('SANDBOX_API_CALLBACK', 'https://api-sandbox.payvment.com');
+
+include('../Payvment.php');
+
+
+
 /**
  * Payvment tests
  */
@@ -162,6 +177,17 @@ class PayvmentTest extends PHPUnit_Framework_TestCase
     public function testLoadOrders()
     {
         $file = dirname(__FILE__) . '/xml/testOrders.xml';
+
+        $this->mockPayvment = $this->getMock(
+            'Payvment',
+            array(
+                "getOrdersUrl",
+            ),
+            array(),
+            '',
+            false
+        );
+        
         $this->mockPayvment->expects($this->any())
                 ->method("getOrdersUrl")
                 ->will($this->returnValue($file));
@@ -221,9 +247,8 @@ class PayvmentTest extends PHPUnit_Framework_TestCase
         
         $payvmentId = intval($this->mockPayvment->getPayvmentId());
         $payvmentToken = $this->mockPayvment->getPayvmentToken();
-        echo (intval($payvmentId));
         $this->assertEquals($expectedPayvmentId, $payvmentId);
-        //$this->assertEquals($expectedPayvmentToken, $payvmentToken);
+        $this->assertEquals($expectedPayvmentToken, $payvmentToken);
     }
     
     public function testGenerateTokenThrowsFaultyXMLException()
@@ -286,4 +311,25 @@ class PayvmentTest extends PHPUnit_Framework_TestCase
         
         $this->fail('Exception not thrown for testGenerateTokenThrowsCSRFException()');
     }
+
+    public function testGetStores()
+    {        
+        $this->request['state'] = $_SESSION['state'] = '123xyz';
+        $file = dirname(__FILE__) . '/xml/stores.xml';
+        
+        $this->mockPayvment = $this->getMock(
+            'Payvment',
+            array(
+                "getStoresUrl"
+            ),
+            array($this->request)
+        );
+        
+        $this->mockPayvment->expects($this->any())
+                ->method("getStoresUrl")
+                ->will($this->returnValue($file));
+        
+        $this->assertEquals($this->mockPayvment->stores()->asXML(), file_get_contents($file));
+   }
+
 }
