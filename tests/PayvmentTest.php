@@ -1,8 +1,8 @@
 <?php
 
 // Tess Payvment Credentials for testing
-define('PRODUCTION_APPLICATION_ID', '727466');   // Update this with your Payvment ID
-define('PRODUCTION_APPLICATION_SECRET', '84e583f3d0e8bb603d2756b94b3c07d4');    // UPdate this with your Payvment App Secret
+define('PRODUCTION_APPLICATION_ID', '555555');   // Update this with your Payvment ID
+define('PRODUCTION_APPLICATION_SECRET', 'junkjunkjunk');    // UPdate this with your Payvment App Secret
 
 define('SANDBOX_APPLICATION_ID', '727413');    // Update this with your Sandbox Payvment ID
 define('SANDBOX_APPLICATION_SECRET', '0cb98a182657ede761ab073fe461b4e7');     // Update this with your Sandbox Payvment App Secret
