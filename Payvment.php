@@ -89,7 +89,6 @@ class Payvment extends BasePayvment {
             "client_id={$this->_applicationId}" . 
             "&client_secret={$this->_applicationSecret}" . 
             "&code=" . $this->_request->code;
-            
         return $tokenUrl;
     }
     
@@ -105,6 +104,33 @@ class Payvment extends BasePayvment {
     public function getXml($url)
     {
         return simplexml_load_file($url);        
+    }
+    
+    
+    /**
+     * Passing in a url or file resource and a POST body,
+     * return the xml document
+     * NOTE: simplexml_load_file returns false if invalid or no xml 
+     * 
+     * @param string $url 
+     * @return mixed (boolean/xml) 
+     */
+    public function postXml($url, $datafile)
+    {
+        $fp = fopen($datafile, 'r');
+        if (!$fp) {
+            throw Exception("cannot open data file for postXML");
+        }
+
+        //open connection
+        $ch = curl_init();
+        curl_setopt($ch,CURLOPT_URL,$url);
+        curl_setopt($ch,CURLOPT_POST,true);
+        curl_setopt($ch,CURLOPT_POSTFIELDS,stream_get_contents($fp));
+        $result = curl_exec($ch);
+        curl_close($ch);
+        
+        fclose($fp);
     }
     
     
@@ -155,7 +181,6 @@ class Payvment extends BasePayvment {
     {
         $url = $this->_callbackUrl . "/1/stores/list?access_token=" . 
                 $this->_payvmentToken;
-        echo "stores url is ".$url;        
         if (!empty($params)) {
             foreach ($params as $key => $val) {
                 $url .= "&" . urlencode($key) . '=' . urlencode($val);
@@ -188,6 +213,28 @@ class Payvment extends BasePayvment {
     }
     
     /**
+     * This is the REST call for Payvment's orders API
+     * the default command will pull all orders for a given retailer
+     * 
+     * @param string $command
+     * @return string $url
+     * 
+     */
+    public function getImportProductsUrl($params="")
+    {
+        $url = $this->_callbackUrl . "/1/products/import?access_token=" . 
+                $this->_payvmentToken;
+                
+        if (!empty($params)) {
+            foreach ($params as $key => $val) {
+                $url .= "&" . urlencode($key) . '=' . urlencode($val);
+            }
+        }
+
+        return $url;
+    }
+    
+    /**
      * REST calls for Payvment's stores API
      * the default command will pull all orders for a given retailer
      * 
@@ -200,6 +247,7 @@ class Payvment extends BasePayvment {
         if(!$params) {
             $params = array();
         }
+        
         switch ($format) {
             case 'xml':
                 $result = $this->getXml($this->getStoresUrl($params));
@@ -231,6 +279,33 @@ class Payvment extends BasePayvment {
         switch ($format) {
             case 'xml':
                 $result = $this->getXml($this->getOrdersUrl($params));
+                break;
+            default:
+                $result = 'Invalid format passed.';
+                break;
+        }
+        
+        return $result;
+    }
+    
+    /**
+     *
+     * Import Products for a given retailer -- 
+     * 
+     * @param string $format
+     * @return string $result
+     */
+    public function importProducts($datafile, $params=false, $format='xml')
+    {
+        $result = false;
+        
+        if(!$params) {
+            $params = array();
+        }
+        
+        switch ($format) {
+            case 'xml':
+                $result = $this->postXml($this->getImportProductsUrl($params), $datafile);
                 break;
             default:
                 $result = 'Invalid format passed.';
