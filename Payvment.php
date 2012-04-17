@@ -106,6 +106,15 @@ class Payvment extends BasePayvment {
         return simplexml_load_file($url);        
     }
     
+    public function postXmlData($url, $data) {
+        //open connection
+        $ch = curl_init();
+        curl_setopt($ch,CURLOPT_URL,$url);
+        curl_setopt($ch,CURLOPT_POST,true);
+        curl_setopt($ch,CURLOPT_POSTFIELDS,$data);
+        $result = curl_exec($ch);
+        curl_close($ch);
+    }
     
     /**
      * Passing in a url or file resource and a POST body,
@@ -119,17 +128,10 @@ class Payvment extends BasePayvment {
     {
         $fp = fopen($datafile, 'r');
         if (!$fp) {
-            throw Exception("cannot open data file for postXML");
+            throw new Exception("cannot open data file for postXML");
         }
 
-        //open connection
-        $ch = curl_init();
-        curl_setopt($ch,CURLOPT_URL,$url);
-        curl_setopt($ch,CURLOPT_POST,true);
-        curl_setopt($ch,CURLOPT_POSTFIELDS,stream_get_contents($fp));
-        $result = curl_exec($ch);
-        curl_close($ch);
-        
+        return $this->postXmlData($url, stream_get_contents($fp));        
         fclose($fp);
     }
     
@@ -235,6 +237,27 @@ class Payvment extends BasePayvment {
     }
     
     /**
+     * This is the REST call for Payvment's Accounts API
+     * 
+     * @param array $params
+     * @return string $url
+     * 
+     */
+    public function getAccountsUrl($params=array())
+    {
+        $url = $this->_callbackUrl . "/1/accounts/user?access_token=" . 
+                $this->_payvmentToken;
+        
+        if (!empty($params)) {
+            foreach ($params as $key => $val) {
+                $url .= "&" . urlencode($key) . '=' . urlencode($val);
+            }
+        }
+
+        return $url;
+    }
+    
+    /**
      * REST calls for Payvment's stores API
      * the default command will pull all orders for a given retailer
      * 
@@ -306,6 +329,39 @@ class Payvment extends BasePayvment {
         switch ($format) {
             case 'xml':
                 $result = $this->postXml($this->getImportProductsUrl($params), $datafile);
+                break;
+            default:
+                $result = 'Invalid format passed.';
+                break;
+        }
+        
+        return $result;
+    }
+    
+    /**
+     *
+     * Create User for a given agency -- 
+     * 
+     * The default command will create Payvment Account with the given email
+     * @param array
+     * @format string
+     * @return string $result
+     */
+    public function createUserAccount($email, $first_name, $last_name, $type, $format='xml')
+    {
+        $result = false;
+        
+        // must have email parameter
+        $user_data = array('command'=>'create',
+                           'first_name'=>$first_name,
+                           'last_name'=>$last_name,
+                           'email'=>$email,
+                           'type'=>$type);
+        
+        switch ($format) {
+            case 'xml':
+                $user_data['format'] = 'xml';
+                $result = $this->postXmlData($this->getAccountsUrl(), $user_data);
                 break;
             default:
                 $result = 'Invalid format passed.';
