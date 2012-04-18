@@ -347,7 +347,7 @@ class Payvment extends BasePayvment {
      * @format string
      * @return string $result
      */
-    public function createUserAccount($email, $first_name, $last_name, $type, $format='xml')
+    public function createUserAccount($email, $first_name, $last_name, $format='xml')
     {
         $result = false;
         
