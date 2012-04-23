@@ -347,7 +347,7 @@ class Payvment extends BasePayvment {
      * @format string
      * @return string $result
      */
-    public function createUserAccount($email, $first_name, $last_name, $type, $format='xml')
+    public function createUserAccount($email, $first_name, $last_name, $subscription_type, $format='xml')
     {
         $result = false;
         
@@ -356,7 +356,7 @@ class Payvment extends BasePayvment {
                            'first_name'=>$first_name,
                            'last_name'=>$last_name,
                            'email'=>$email,
-                           'type'=>$type);
+                           'subscription_type'=>$subscription_type);
         
         switch ($format) {
             case 'xml':
