@@ -101,8 +101,17 @@ class Payvment extends BasePayvment {
      * @param string $url 
      * @return mixed (boolean/xml) 
      */
-    public function getXml($url)
+    public function getXml($url, $query=null)
     {
+        if ($query) {
+            if(!strpos($url, '?')) {
+                // no query string already set
+                $url = $url."?".http_build_query($query);
+            }
+            else {
+                $url = $url."&".http_build_query($query);
+            }
+        }
         return simplexml_load_file($url);        
     }
     
@@ -245,7 +254,7 @@ class Payvment extends BasePayvment {
      */
     public function getAccountsUrl($params=array())
     {
-        $url = $this->_callbackUrl . "/1/accounts/user?access_token=" . 
+        $url = $this->_callbackUrl . "/1/accounts/user".(isset($params['payvment_id']) ? "/id/".$params['payvment_id'] : "")."?access_token=" . 
                 $this->_payvmentToken;
         
         if (!empty($params)) {
@@ -362,6 +371,66 @@ class Payvment extends BasePayvment {
             case 'xml':
                 $user_data['format'] = 'xml';
                 $result = $this->postXmlData($this->getAccountsUrl(), $user_data);
+                break;
+            default:
+                $result = 'Invalid format passed.';
+                break;
+        }
+        
+        return $result;
+    }
+    
+    /**
+     *
+     * Update User for a given agency -- 
+     * 
+     * The default command will create Payvment Account with the given email
+     * @param array
+     * @format string
+     * @return string $result
+     */
+    public function updateUserAccount($payvment_id, $subscription_type, $status, $format='xml')
+    {
+        $result = false;
+        
+        // must have email parameter
+        $user_data = array('command'=>'update',
+                           'status'=>$status,
+                           'subscription_type'=>$subscription_type);
+        
+        switch ($format) {
+            case 'xml':
+                $user_data['format'] = 'xml';
+                $result = $this->postXmlData($this->getAccountsUrl(array('payvment_id' => $payvment_id)), $user_data);
+                break;
+            default:
+                $result = 'Invalid format passed.';
+                break;
+        }
+        
+        return $result;
+    }
+    
+    /**
+     *
+     * Update User for a given agency -- 
+     * 
+     * The default command will create Payvment Account with the given email
+     * @param array
+     * @format string
+     * @return string $result
+     */
+    public function getUserAccount($email, $format='xml')
+    {
+        $result = false;
+        
+        // must have email parameter
+        $user_data = array('email'=>$email);
+        
+        switch ($format) {
+            case 'xml':
+                $user_data['format'] = 'xml';
+                $result = $this->getXml($this->getAccountsUrl(), $user_data);
                 break;
             default:
                 $result = 'Invalid format passed.';
