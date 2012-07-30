@@ -4,8 +4,8 @@
 define('PRODUCTION_APPLICATION_ID', '555555');   // Update this with your Payvment ID
 define('PRODUCTION_APPLICATION_SECRET', 'junkjunkjunk');    // UPdate this with your Payvment App Secret
 
-define('SANDBOX_APPLICATION_ID', '727413');    // Update this with your Sandbox Payvment ID
-define('SANDBOX_APPLICATION_SECRET', '0cb98a182657ede761ab073fe461b4e7');     // Update this with your Sandbox Payvment App Secret
+define('SANDBOX_APPLICATION_ID', '727523');    // Update this with your Sandbox Payvment ID
+define('SANDBOX_APPLICATION_SECRET', 'fbbce4a667d45febf7c273e35fbd77a1');     // Update this with your Sandbox Payvment App Secret
 
 define('PRODUCTION_API_CALLBACK', 'https://api.payvment.com');
 define('SANDBOX_API_CALLBACK', 'https://api-sandbox.payvment.com');
